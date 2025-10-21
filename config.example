@@ -1,0 +1,12 @@
+{
+  "commands": ["logger {}", "snmptrap -v2c -c trapcommunity DESTINATION OID s \"Nexthop or metric changed for prefix {prefix} to {newValue}\""],
+  "cli_commands": [],
+  "prefixes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "metric": 10,
+      "next_hops": ["192.168.1.0"],
+      "next_hop_interfaces": [""]
+    }
+  ]
+}
