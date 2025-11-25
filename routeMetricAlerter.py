@@ -90,7 +90,8 @@ class BGPMonitor(eossdk.AgentHandler, eossdk.BgpPathHandler, eossdk.BgpPeerHandl
         for optionName in ['config']:
             optionValue = self.agentMgr.agent_option(optionName)
             if optionName == 'config' and not optionValue:
-                optionValue = '{"commands": ["logger {}", "snmptrap -v2c -c trapcommunity DESTINATION OID s \\"Nexthop or metric changed for prefix {prefix} to {newValue}\\""], "cli_commands": [], "prefixes": [{"prefix": "0.0.0.0/0", "metric": 10, "next_hops": ["192.168.1.0"], "next_hop_interfaces": [""]}]}'
+                #optionValue = '{"commands": ["logger {}", "snmptrap -v2c -c trapcommunity DESTINATION OID s \\"Nexthop or metric changed for prefix {prefix} to {newValue}\\""], "cli_commands": [], "prefixes": [{"prefix": "0.0.0.0/0", "metric": 10, "next_hops": ["192.168.1.0"], "next_hop_interfaces": [""]}]}'
+                optionValue = '{  "commands": ["logger {}", "snmptrap -v2c -c trapcommunity 192.168.1.245 1.3.6.1.4.1.30065.3.25.0 0 s \\"HelloJeff\\""],  "cli_commands": [],  "prefixes": [    {      "prefix": "0.0.0.0/0",      "metric": 40,      "next_hops": ["10.36.128.14"],      "next_hop_interfaces": [""]    }  ]}'
 
             if optionValue:
                 self.on_agent_option(optionName, optionValue)
@@ -105,7 +106,13 @@ class BGPMonitor(eossdk.AgentHandler, eossdk.BgpPathHandler, eossdk.BgpPeerHandl
     def on_agent_option(self, optionName, optionValue):
         optionName = optionName.lower()
         if optionName == 'config':
-            c = json.loads(optionValue)
+            try:
+                self.tracer.trace0(f"attempting to load {optionValue}")
+                c = json.loads(optionValue)
+            except Exception as e:
+                self.tracer.trace0(f"error in loading the config {e}")
+                return
+
             self.prefixes = {}
             for prefix in c["prefixes"]:
                 self.tracer.trace9(f"adding prefix: {prefix}")
@@ -148,4 +155,5 @@ if __name__ == "__main__":
     sdk = eossdk.Sdk()
     _ = BGPMonitor(sdk)
     sdk.main_loop(sys.argv)
+
 
