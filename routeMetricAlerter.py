@@ -40,13 +40,14 @@ class MonitoredPrefix():
                 self.tracer.trace9("metric not equal")
                 return False
 
+        self.tracer.trace9(f"we are equal! {self}:{other}")
         return True
 
     def __lt__(self, other):
         return self.prefix.__lt__(other)
 
     def __ne__(self, other):
-        return self.prefix.__ne__(other)
+        return not self.__eq__(other)
 
     def __hash__(self):
         return self.prefix.__hash__()
@@ -90,8 +91,18 @@ class BGPMonitor(eossdk.AgentHandler, eossdk.BgpPathHandler, eossdk.BgpPeerHandl
         for optionName in ['config']:
             optionValue = self.agentMgr.agent_option(optionName)
             if optionName == 'config' and not optionValue:
-                #optionValue = '{"commands": ["logger {}", "snmptrap -v2c -c trapcommunity DESTINATION OID s \\"Nexthop or metric changed for prefix {prefix} to {newValue}\\""], "cli_commands": [], "prefixes": [{"prefix": "0.0.0.0/0", "metric": 10, "next_hops": ["192.168.1.0"], "next_hop_interfaces": [""]}]}'
-                optionValue = '{  "commands": ["logger {}", "snmptrap -v2c -c trapcommunity 192.168.1.245 1.3.6.1.4.1.30065.3.25.0 0 s \\"HelloJeff\\""],  "cli_commands": [],  "prefixes": [    {      "prefix": "0.0.0.0/0",      "metric": 40,      "next_hops": ["10.36.128.14"],      "next_hop_interfaces": [""]    }  ]}'
+                optionValue = """
+{
+    "commands": [
+        "logger {}",
+        "snmptrap -v2c -c trapcommunity 192.168.1.245 1.3.6.1.4.1.30065.3.25.0 0 s \\"HelloJeff\\""
+    ],
+    "cli_commands": [],
+    "prefixes": [
+        {"prefix": "0.0.0.0/0","metric": 40,"next_hops": ["10.36.128.14"],"next_hop_interfaces": [""]},
+        {"prefix": "1.1.1.0/24","metric": 0,"next_hops": ["192.168.1.1"],"next_hop_interfaces": [""]}
+    ]
+}"""
 
             if optionValue:
                 self.on_agent_option(optionName, optionValue)
